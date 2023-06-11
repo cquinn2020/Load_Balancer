@@ -1,81 +1,23 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <numeric>
-#include <cmath>
-#include <limits>
-#include <cassert>
-#include <random>
-#include <map>
-#include <cstdlib>
-#include <ctime>
+// LoadBalancer.cpp
 
-std::string generateRandomIPAdress();
-bool GetUserInput(int &numServers, int &maxRequestsPerServer, int &runTimeInCycles);
+#include "LoadBalancer.h"
 
-int main()
+LoadBalancer::LoadBalancer(int numServers)
 {
-    srand(time(NULL));
-
-    int numServers;
-    int maxRequestsPerServer;
-    int runTimeInCycles;
-
-    if (!GetUserInput(numServers, maxRequestsPerServer, runTimeInCycles))
-    {
-        return 1;
-    }
-
-    std::cout << "Number of servers: " << numServers << "\n";
-    std::cout << "Maximum requests per server: " << maxRequestsPerServer << "\n";
-    std::cout << "Runtime in cycles: " << runTimeInCycles << "\n";
+    generateWebServers(numServers);
 }
 
-std::string generateRandomIPAdress()
+void LoadBalancer::generateWebServers(int numServers)
 {
-    std::string ip = "";
-    for (int i = 0; i < 4; i++)
-    {
-        ip += std::to_string(rand() % 255);
-        if (i != 3)
-        {
-            ip += ".";
-        }
-    }
-    return ip;
+    // Add implementation here.
 }
 
-bool GetUserInput(int &numServers, int &maxRequestsPerServer, int &runTimeInCycles)
+WebServer &LoadBalancer::getWebServer(int serverId)
 {
-    std::cout << "Enter the number of servers: ";
-    std::cin >> numServers;
-    if (std::cin.fail() || numServers <= 0)
-    {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Invalid input. Number of servers must be a positive integer.\n";
-        return false;
-    }
+    // Add implementation here.
+}
 
-    std::cout << "Enter the maximum requests per server: ";
-    std::cin >> maxRequestsPerServer;
-    if (std::cin.fail() || maxRequestsPerServer <= 0)
-    {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Invalid input. Maximum requests per server must be a positive integer.\n";
-        return false;
-    }
-
-    std::cout << "Enter the runtime in cycles: ";
-    std::cin >> runTimeInCycles;
-    if (std::cin.fail() || runTimeInCycles <= 0)
-    {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Invalid input. Runtime in cycles must be a positive integer.\n";
-        return false;
-    }
-
-    return true;
+void LoadBalancer::addRequestToServer(int serverId, const Request &request)
+{
+    // Add implementation here.
 }
