@@ -14,8 +14,14 @@
 #include "Request.h"
 #include "WebServer.h"
 
+float TIME_PER_CYCLE = 0.024f;
+LoadBalancer loadBalancer;
+
 std::string generateRandomIPAdress();
 bool GetUserInput(int &numServers, int &maxRequestsPerServer, int &runTimeInCycles);
+float generateProcessingTime(int totalClockCycles, float timePerCycle);
+std::vector<std::string> generateIPAddresses(int numServers);
+void generateRequests(int numServers, LoadBalancer &loadBalancer, int numClockCycles);
 
 int main()
 {
@@ -23,16 +29,27 @@ int main()
 
     int numServers;
     int maxRequestsPerServer;
-    int runTimeInCycles;
+    int numClockCycles;
 
-    if (!GetUserInput(numServers, maxRequestsPerServer, runTimeInCycles))
+    if (!GetUserInput(numServers, maxRequestsPerServer, numClockCycles))
     {
         return 1;
     }
 
     std::cout << "Number of servers: " << numServers << "\n";
     std::cout << "Maximum requests per server: " << maxRequestsPerServer << "\n";
-    std::cout << "Runtime in cycles: " << runTimeInCycles << "\n";
+    std::cout << "Runtime in cycles: " << numClockCycles << "\n";
+
+    std::vector<std::string> webServerIPs = generateIPAddresses(numServers);
+
+    loadBalancer.setNumServers(numServers);
+    loadBalancer.generateWebServers(webServerIPs, maxRequestsPerServer);
+    loadBalancer.printWebServerDetails();
+
+    // int totalTime = numClockCycles * TIME_PER_CYCLE;
+    // int numRequest = numServers * 100;
+
+    generateRequests(numServers, loadBalancer, numClockCycles);
 }
 
 std::string generateRandomIPAdress()
@@ -82,4 +99,35 @@ bool GetUserInput(int &numServers, int &maxRequestsPerServer, int &runTimeInCycl
     }
 
     return true;
+}
+
+float generateProcessingTime(int totalClockCycles, float timePerCycle)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distr(totalClockCycles * 0.00005, totalClockCycles * 0.03);
+    return distr(gen) * timePerCycle;
+}
+
+std::vector<std::string> generateIPAddresses(int numServers)
+{
+    std::vector<std::string> ipAddresses;
+    for (int i = 0; i < numServers; i++)
+    {
+        ipAddresses.push_back(generateRandomIPAdress());
+    }
+    return ipAddresses;
+}
+
+void generateRequests(int numServers, LoadBalancer &loadBalancer, int numClockCycles)
+{
+    int totalRequests = numServers * 100;
+    for (int i = 0; i < totalRequests; i++)
+    {
+        std::string ipAddress = generateRandomIPAdress();
+        std::string webServerIP = loadBalancer.assignedIPs[i % numServers];
+        float processingTime = generateProcessingTime(numClockCycles, TIME_PER_CYCLE);
+        Request request(ipAddress, webServerIP, processingTime);
+        loadBalancer.addRequest(request);
+    }
 }

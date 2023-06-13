@@ -8,7 +8,7 @@
 class Request
 {
 public:
-    Request(const std::string &requestIp, const std::string &destinationIp, int processingTime);
+    Request(const std::string &requestIp, const std::string &destinationIp, float processingTime);
 
     std::string getRequestIp() const;
     std::string getDestinationIp() const;
@@ -17,7 +17,7 @@ public:
 private:
     std::string requestIp;
     std::string destinationIp;
-    int processingTime;
+    float processingTime;
 };
 
 #endif // REQUEST_H

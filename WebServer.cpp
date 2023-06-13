@@ -11,3 +11,8 @@ Request WebServer::processNextRequest()
 {
     // Add implementation here.
 }
+
+int WebServer::getQueueSize() const
+{
+    return requestQueue.size();
+}

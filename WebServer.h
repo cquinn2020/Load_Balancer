@@ -11,9 +11,12 @@ class WebServer
 public:
     void addToQueue(const Request &request);
     Request processNextRequest();
+    int getQueueSize() const;
+
+    int maxRequestsPerServer = 0;
+    std::queue<Request> requestQueue;
 
 private:
-    std::queue<Request> requestQueue;
 };
 
 #endif // WEBSERVER_H
