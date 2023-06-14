@@ -4,6 +4,7 @@
 #define REQUEST_H
 
 #include <string>
+#include <iostream>
 
 class Request
 {
@@ -13,6 +14,7 @@ public:
     std::string getRequestIp() const;
     std::string getDestinationIp() const;
     int getProcessingTime() const;
+    void printRequest() const;
 
 private:
     std::string requestIp;

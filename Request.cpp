@@ -19,3 +19,7 @@ int Request::getProcessingTime() const
 {
     return processingTime;
 }
+void Request::printRequest() const
+{
+    std::cout << "Request from " << requestIp << " to " << destinationIp << " will take " << processingTime << " seconds.\n";
+}

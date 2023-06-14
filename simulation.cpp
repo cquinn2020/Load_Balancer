@@ -44,12 +44,18 @@ int main()
 
     loadBalancer.setNumServers(numServers);
     loadBalancer.generateWebServers(webServerIPs, maxRequestsPerServer);
+
+    std::cout << "Web server details:\n";
     loadBalancer.printWebServerDetails();
+    std::cout << "Web server details end.\n\n"
+              << std::endl;
 
     // int totalTime = numClockCycles * TIME_PER_CYCLE;
     // int numRequest = numServers * 100;
 
+    std::cout << "Generating requests...\n";
     generateRequests(numServers, loadBalancer, numClockCycles);
+    std::cout << "Requests generated.\n\n";
 }
 
 std::string generateRandomIPAdress()
@@ -128,6 +134,7 @@ void generateRequests(int numServers, LoadBalancer &loadBalancer, int numClockCy
         std::string webServerIP = loadBalancer.assignedIPs[i % numServers];
         float processingTime = generateProcessingTime(numClockCycles, TIME_PER_CYCLE);
         Request request(ipAddress, webServerIP, processingTime);
+        request.printRequest();
         loadBalancer.addRequest(request);
     }
 }
