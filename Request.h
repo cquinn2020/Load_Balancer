@@ -9,11 +9,13 @@
 class Request
 {
 public:
+    Request() : requestIp(""), destinationIp(""), processingTime(0) {} // add default constructor
+
     Request(const std::string &requestIp, const std::string &destinationIp, float processingTime);
 
     std::string getRequestIp() const;
     std::string getDestinationIp() const;
-    int getProcessingTime() const;
+    float getProcessingTime() const;
     void printRequest() const;
 
 private:

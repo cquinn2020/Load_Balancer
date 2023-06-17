@@ -2,17 +2,56 @@
 
 #include "WebServer.h"
 
-void WebServer::addToQueue(const Request &request)
+WebServer::WebServer(std::string ipAddress)
 {
-    // Add implementation here.
+    this->ipAddress = ipAddress;
+    this->isProcessingRequest = false;
+    this->request = Request("", "", 0);
 }
 
-Request WebServer::processNextRequest()
+std::string WebServer::getIpAddress() const
 {
-    // Add implementation here.
+    return ipAddress;
 }
 
-int WebServer::getQueueSize() const
+bool WebServer::getIsProcessing() const
 {
-    return requestQueue.size();
+    return isProcessingRequest;
+}
+
+void WebServer::processRequests(std::atomic<bool> &simulationRunning)
+{
+    while (simulationRunning)
+    {
+        std::unique_lock<std::mutex> lock(this->webServerMutex);
+        if (!isProcessingRequest && hasRequest)
+        {
+            isProcessingRequest = true;
+
+            // Get the processing time of the next request
+            float processingTime = request.getProcessingTime();
+            lock.unlock();
+
+            // "Process" the request by sleeping for its duration
+            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(processingTime * 1000)));
+
+            // Output a message that the request has been processed
+            std::cout << "Request from " << request.getRequestIp() << " processed by Web Server with ip address: " << ipAddress << "\n";
+
+            // Lock again to safely set isProcessingRequest
+            lock.lock();
+            isProcessingRequest = false;
+            hasRequest = false;
+        }
+        else
+        {
+            // If the queue is empty, yield this thread's time slice
+            std::this_thread::yield();
+        }
+    }
+}
+
+bool WebServer::getHasRequest() const
+{
+    return hasRequest;
 }

@@ -3,27 +3,25 @@
 
 LoadBalancer::LoadBalancer() {}
 
-void LoadBalancer::generateWebServers(std::vector<std::string> &ipAddresses, int maxRequestsPerServer)
+void LoadBalancer::generateWebServers(std::vector<std::string> &ipAddresses)
 {
     this->assignedIPs = ipAddresses;
-    this->maxRequestsPerServer = maxRequestsPerServer;
 
-    for (int i = 0; i < ipAddresses.size(); i++)
+    for (int i = 0; i < numServers; i++)
     {
-        WebServer webServer;
-        webServer.maxRequestsPerServer = maxRequestsPerServer;
-        webServers[i] = webServer;
+        webServers.push_back(std::make_unique<WebServer>(ipAddresses[i]));
     }
 }
 
-WebServer &LoadBalancer::getWebServer(int serverId)
+std::vector<std::unique_ptr<WebServer>> LoadBalancer::getWebServers()
 {
-    // Add implementation here.
+    return webServers;
 }
 
 void LoadBalancer::addRequestToServer(int serverId, const Request &request)
 {
-    // Add implementation here.
+    // obtauin a lock and add the request to the server's queue
+    std::lock_guard<std::mutex> lock(loadBalancerMutex);
 }
 
 void LoadBalancer::setNumServers(int numServers)
@@ -36,14 +34,15 @@ void LoadBalancer::printWebServerDetails()
     for (int i = 0; i < numServers; i++)
     {
         std::cout << "Server " << i << ":\n";
-        std::cout << "IP Address: " << assignedIPs[i] << "\n";
-        std::cout << "Max requests: " << maxRequestsPerServer << "\n";
-        std::cout << "Current queue size: " << webServers[i].getQueueSize() << "\n";
+        std::cout << "IP: " << webServers[i]->getIpAddress() << "\n";
+        std::cout << "Is processing request: " << webServers[i]->getIsProcessing() << "\n";
+
         std::cout << "\n";
     }
 }
 
 void LoadBalancer::addRequest(const Request &request)
 {
+    std::lock_guard<std::mutex> lock(loadBalancerMutex);
     this->unassignedRequests.push(request);
 }

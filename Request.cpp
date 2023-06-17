@@ -15,11 +15,11 @@ std::string Request::getDestinationIp() const
     return destinationIp;
 }
 
-int Request::getProcessingTime() const
+float Request::getProcessingTime() const
 {
     return processingTime;
 }
 void Request::printRequest() const
 {
-    std::cout << "Request from " << requestIp << " to " << destinationIp << " will take " << processingTime << " seconds.\n";
+    std::cout << "Request from " << requestIp << " will take " << processingTime << " seconds.\n";
 }

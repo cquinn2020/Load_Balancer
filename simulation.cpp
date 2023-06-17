@@ -9,52 +9,59 @@
 #include <map>
 #include <cstdlib>
 #include <ctime>
+#include <mutex>
+#include <thread>
 
 #include "LoadBalancer.h"
 #include "Request.h"
 #include "WebServer.h"
 
+// Global variables
 float TIME_PER_CYCLE = 0.024f;
 LoadBalancer loadBalancer;
+std::mutex loadBalancerMutex;
+std::atomic<bool> simulationRunning(true);
+std::atomic<bool> simulationFinished(false);
 
 std::string generateRandomIPAdress();
-bool GetUserInput(int &numServers, int &maxRequestsPerServer, int &runTimeInCycles);
+bool GetUserInput(int &numServers, int &runTimeInCycles);
 float generateProcessingTime(int totalClockCycles, float timePerCycle);
 std::vector<std::string> generateIPAddresses(int numServers);
-void generateRequests(int numServers, LoadBalancer &loadBalancer, int numClockCycles);
+void generateRequest(LoadBalancer &loadBalancer, int numClockCycles);
+void generateAndSendRequests(LoadBalancer &loadBalancer, int numClockCycles, int numServers, const std::atomic<bool> &simulationRunning);
 
 int main()
 {
     srand(time(NULL));
 
     int numServers;
-    int maxRequestsPerServer;
     int numClockCycles;
 
-    if (!GetUserInput(numServers, maxRequestsPerServer, numClockCycles))
+    if (!GetUserInput(numServers, numClockCycles))
     {
         return 1;
     }
 
     std::cout << "Number of servers: " << numServers << "\n";
-    std::cout << "Maximum requests per server: " << maxRequestsPerServer << "\n";
     std::cout << "Runtime in cycles: " << numClockCycles << "\n";
 
     std::vector<std::string> webServerIPs = generateIPAddresses(numServers);
 
+    // create the load balancer for the simulation
     loadBalancer.setNumServers(numServers);
-    loadBalancer.generateWebServers(webServerIPs, maxRequestsPerServer);
+    loadBalancer.generateWebServers(webServerIPs);
 
     std::cout << "Web server details:\n";
     loadBalancer.printWebServerDetails();
     std::cout << "Web server details end.\n\n"
               << std::endl;
 
-    // int totalTime = numClockCycles * TIME_PER_CYCLE;
-    // int numRequest = numServers * 100;
-
     std::cout << "Generating requests...\n";
-    generateRequests(numServers, loadBalancer, numClockCycles);
+    int i = 0;
+    while (i < numServers * 100)
+    {
+        generateRequest(loadBalancer, numClockCycles);
+    }
     std::cout << "Requests generated.\n\n";
 }
 
@@ -72,7 +79,7 @@ std::string generateRandomIPAdress()
     return ip;
 }
 
-bool GetUserInput(int &numServers, int &maxRequestsPerServer, int &runTimeInCycles)
+bool GetUserInput(int &numServers, int &runTimeInCycles)
 {
     std::cout << "Enter the number of servers: ";
     std::cin >> numServers;
@@ -84,17 +91,7 @@ bool GetUserInput(int &numServers, int &maxRequestsPerServer, int &runTimeInCycl
         return false;
     }
 
-    std::cout << "Enter the maximum requests per server: ";
-    std::cin >> maxRequestsPerServer;
-    if (std::cin.fail() || maxRequestsPerServer <= 0)
-    {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Invalid input. Maximum requests per server must be a positive integer.\n";
-        return false;
-    }
-
-    std::cout << "Enter the runtime in cycles: ";
+    std::cout << "Enter the runtime in clock cycles: ";
     std::cin >> runTimeInCycles;
     if (std::cin.fail() || runTimeInCycles <= 0)
     {
@@ -125,16 +122,33 @@ std::vector<std::string> generateIPAddresses(int numServers)
     return ipAddresses;
 }
 
-void generateRequests(int numServers, LoadBalancer &loadBalancer, int numClockCycles)
+void generateRequest(LoadBalancer &loadBalancer, int numClockCycles)
 {
-    int totalRequests = numServers * 100;
-    for (int i = 0; i < totalRequests; i++)
+
+    std::string ipAddress = generateRandomIPAdress();
+    float processingTime = generateProcessingTime(numClockCycles, TIME_PER_CYCLE);
+    Request request(ipAddress, "", processingTime);
+    request.printRequest();
+    loadBalancer.addRequest(request);
+}
+
+void generateAndSendRequests(LoadBalancer &loadBalancer, int numClockCycles, int numServers, const std::atomic<bool> &simulationRunning)
+{
+    while (simulationRunning)
     {
+        int pause = rand() % 100000;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(pause));
+
         std::string ipAddress = generateRandomIPAdress();
-        std::string webServerIP = loadBalancer.assignedIPs[i % numServers];
+        std::string webServerIP = loadBalancer.assignedIPs[rand() % numServers];
         float processingTime = generateProcessingTime(numClockCycles, TIME_PER_CYCLE);
+
         Request request(ipAddress, webServerIP, processingTime);
-        request.printRequest();
-        loadBalancer.addRequest(request);
+
+        {
+            std::lock_guard<std::mutex> lock(loadBalancerMutex);
+            loadBalancer.addRequest(request);
+        }
     }
 }

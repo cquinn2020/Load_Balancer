@@ -15,8 +15,8 @@ class LoadBalancer
 public:
     LoadBalancer();
 
-    void generateWebServers(std::vector<std::string> &ipAddresses, int maxRequestsPerServer);
-    WebServer &getWebServer(int serverId);
+    void generateWebServers(std::vector<std::string> &ipAddresses);
+    std::vector<std::unique_ptr<WebServer>> getWebServers();
     void addRequestToServer(int serverId, const Request &request);
     void setNumServers(int numServers);
     void printWebServerDetails();
@@ -24,10 +24,10 @@ public:
     void addRequest(const Request &request);
 
 private:
-    std::map<int, WebServer> webServers;
+    std::vector<std::unique_ptr<WebServer>> webServers;
     std::queue<Request> unassignedRequests;
     int numServers = 0;
-    int maxRequestsPerServer = 0;
+    std::mutex loadBalancerMutex;
 };
 
 #endif // LOADBALANCER_H
